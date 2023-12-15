@@ -2,12 +2,10 @@ const mongoose = require('mongoose');
 const Card = require('../models/cards');
 const NotFound = require('../errors/notFound');
 const NotOwner = require('../errors/notOwner');
+const BadRequest = require('../errors/badRequest');
 const {
   OK_STATUS,
   OK_CREATED_STATUS,
-  BAD_REQUEST_STATUS,
-  NOT_OWNER_STATUS,
-  NOT_FOUND_STATUS,
 } = require('../errors/errors');
 
 const getCards = (req, res, next) => {
@@ -30,7 +28,7 @@ const createCard = (req, res, next) => {
         const message = Object.values(e.errors)
           .map((error) => error.message)
           .join('; ');
-        res.status(BAD_REQUEST_STATUS).send({ message });
+        next(new BadRequest(message));
       } else {
         next(e);
       }
@@ -41,7 +39,7 @@ const deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const ownerId = req.user._id;
   Card
-    .findByIdAndRemove(cardId)
+    .findById(cardId)
     .orFail(() => {
       throw new NotFound();
     })
@@ -55,11 +53,11 @@ const deleteCard = (req, res, next) => {
     })
     .catch((e) => {
       if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
+        next(new NotFound('Карточка не найдена'));
       } else if (e instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
+        next(new BadRequest('Переданы некорректные данные о карточке'));
       } else if (e instanceof NotOwner) {
-        res.status(NOT_OWNER_STATUS).send({ message: 'Невозможно удалить чужую карточку' });
+        next(new NotOwner('Невозможно удалить чужую карточку'));
       } else {
         next(e);
       }
@@ -80,9 +78,9 @@ const updateCardLike = (req, res, next, newData, statusCode) => {
     })
     .catch((e) => {
       if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Карточка не найдена' });
+        next(new NotFound('Карточка не найдена'));
       } else if (e instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о карточке' });
+        next(new BadRequest('Переданы некорректные данные о карточке'));
       } else {
         next(e);
       }

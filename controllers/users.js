@@ -3,13 +3,12 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/users');
 const NotFound = require('../errors/notFound');
+const BadRequest = require('../errors/badRequest');
 const ConflictError = require('../errors/conflict');
 const WrongTokenError = require('../errors/wrongToken');
 const {
   OK_STATUS,
   OK_CREATED_STATUS,
-  BAD_REQUEST_STATUS,
-  NOT_FOUND_STATUS,
 } = require('../errors/errors');
 
 const getUsers = (req, res, next) => {
@@ -33,9 +32,9 @@ const getUser = (req, res, next) => {
     })
     .catch((e) => {
       if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
+        next(new NotFound('Пользователь с таким id не найден'));
       } else if (e instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
+        next(new BadRequest('Переданы некорректные данные о карточке'));
       } else {
         next(e);
       }
@@ -88,8 +87,7 @@ const createUser = (req, res, next) => {
           .values(e.errors)
           .map((error) => error.message)
           .join('; ');
-
-        res.status(BAD_REQUEST_STATUS).send({ message });
+        next(new BadRequest(message));
       } else {
         next(e);
       }
@@ -108,9 +106,9 @@ const getCurrentUserInfo = (req, res, next) => {
     })
     .catch((e) => {
       if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
+        next(new NotFound('Пользователь с таким id не найден'));
       } else if (e instanceof mongoose.Error.CastError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные о пользователе' });
+        next(new BadRequest('Переданы некорректные данные о карточке'));
       } else {
         next(e);
       }
@@ -136,9 +134,9 @@ const updateUser = (req, res, next, newData) => {
     })
     .catch((e) => {
       if (e instanceof NotFound) {
-        res.status(NOT_FOUND_STATUS).send({ message: 'Пользователь с таким id не найден' });
+        next(new NotFound('Пользователь с таким id не найден'));
       } else if (e instanceof mongoose.Error.ValidationError) {
-        res.status(BAD_REQUEST_STATUS).send({ message: 'Переданы некорректные данные при обновлении аватара' });
+        next(new BadRequest('Переданы некорректные данные о карточке'));
       } else {
         next(e);
       }

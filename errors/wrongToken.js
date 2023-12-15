@@ -1,11 +1,10 @@
-const { NOT_OWNER_STATUS } = require('./errors');
+const { UNAUTHORIZED_STATUS } = require('./errors');
 
-class NotOwner extends Error {
+class WrongTokenError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'NotOwnerError';
-    this.statusCode = NOT_OWNER_STATUS;
+    this.statusCode = UNAUTHORIZED_STATUS;
   }
 }
 
-module.exports = NotOwner;
+module.exports = WrongTokenError;

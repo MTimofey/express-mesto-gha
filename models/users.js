@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
+const WrongToken = require('../errors/wrongToken');
 
 const { Schema } = mongoose;
 
@@ -47,10 +48,6 @@ const userSchema = new Schema(
       type: String,
       required: true,
       select: false,
-      validate: {
-        validator: ({ length }) => length >= 4,
-        message: 'Пароль не может быть короче 4 символов',
-      },
     },
   },
 );
@@ -61,14 +58,14 @@ userSchema.statics.findUserByCredentials = function (email, password) {
     .select('+password')
     .then((user) => {
       if (!user) {
-        return Promise.reject(new Error('Некорректные данные! Перепроверьте почту и/или пароль'));
+        return Promise.reject(new WrongToken('Некорректные данные! Перепроверьте почту и/или пароль'));
       }
 
       return bcrypt
         .compare(password, user.password)
         .then((matched) => {
           if (!matched) {
-            return Promise.reject(new Error('Некорректные данные! Перепроверьте почту и/или пароль'));
+            return Promise.reject(new WrongToken('Некорректные данные! Перепроверьте почту и/или пароль'));
           }
 
           return user;
