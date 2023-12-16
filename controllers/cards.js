@@ -48,7 +48,11 @@ const deleteCard = (req, res, next) => {
       if (!card.owner.equals(ownerId)) {
         throw new NotOwner();
       } else {
-        res.status(OK_STATUS).send({ data: card });
+        Card.deleteOne(card)
+          .then(() => {
+            res.status(OK_STATUS).send({ data: card });
+          })
+          .catch(next);
       }
     })
     .catch((e) => {
